@@ -53,7 +53,17 @@ class Application {
 		 */
 		Application(const std::string &smem, bool *exSignal);
 
+		/**
+		 * Copy constructor - inactive
+		 */
+		Application(const Application&) = delete;
+
 		virtual ~Application();
+
+		/**
+		 * Assignment operator - inactive
+		 */
+		Application& operator=(const Application&) = delete;
 
 		/**
 		 * Run application program
