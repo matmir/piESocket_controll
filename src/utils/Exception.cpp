@@ -37,11 +37,11 @@ Exception::Exception(const std::string& exceptionMSG, const std::string& funcNam
 	allMessage += errorMessage;
 }
 
-Exception::~Exception() throw()
+Exception::~Exception() noexcept
 {
 }
 
-const char* Exception::what() const throw() {
+const char* Exception::what() const noexcept {
 
     return allMessage.c_str();
 }

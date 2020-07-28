@@ -16,8 +16,8 @@
  * along with openNetworkHMI.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#ifndef SRC_UTILS_EXCEPTION_H
+#define SRC_UTILS_EXCEPTION_H
 
 #include <exception>
 #include <string>
@@ -25,45 +25,42 @@
 namespace onh {
 
     /**
-     * @brief Base exception class
+     * Base exception class
      */
     class Exception: public std::exception {
 
         public:
-            /**
-             * @brief   Default exception constructor
-             */
+
             Exception();
-
-            virtual ~Exception() throw();
+            virtual ~Exception() noexcept;
 
             /**
-             * @brief   Exception constructor with message
+             * Exception constructor with message
              *
-             * @param   exceptionMSG Exception additional info
+             * @param exceptionMSG Exception additional info
              */
             Exception(const std::string& exceptionMSG);
 
             /**
-             * @brief   Exception constructor with message and function name
+             * Exception constructor with message and function name
              *
-             * @param   exceptionMSG Exception additional info
-             * @param   funcName Function from which exception was throwed
+             * @param exceptionMSG Exception additional info
+             * @param funcName Function from which exception was thrown
              */
             Exception(const std::string& exceptionMSG, const std::string& funcName);
 
             /**
-             * @brief   Get exception message
+             * Get exception message
              *
              * @return Exception message
              */
-            virtual const char* what() const throw();
+            virtual const char* what() const noexcept;
 
-        private:
+        protected:
             /// String with the error message
             std::string errorMessage;
 
-            /// Function from which exception was throwed
+            /// Function from which exception was thrown
             std::string functionName;
 
             /// Full error message
@@ -72,4 +69,4 @@ namespace onh {
 
 }
 
-#endif // EXCEPTION_H
+#endif // SRC_UTILS_EXCEPTION_H

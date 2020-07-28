@@ -30,6 +30,7 @@ namespace onh {
 	 */
 	class Delay {
         public:
+
             /**
              * Constructor
              *
@@ -37,7 +38,18 @@ namespace onh {
              */
             Delay(unsigned long int msec);
 
+            /**
+             * Copy constructor - inactive
+             * @param
+             */
+            Delay(const Delay&) = delete;
+
             virtual ~Delay();
+
+            /**
+			 * Assign operator - inactive
+			 */
+            Delay& operator=(const Delay&) = delete;
 
             /**
              * Start delay
