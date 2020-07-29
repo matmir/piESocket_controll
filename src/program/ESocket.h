@@ -35,7 +35,17 @@
 			 */
 			ESocket(unsigned long int switchDelay = 5000);
 
+			/**
+			 * Copy constructor - inactive
+			 */
+			ESocket(const ESocket&) = delete;
+
 			virtual ~ESocket();
+
+			/**
+			 * Assignment operator - inactive
+			 */
+			ESocket& operator=(const ESocket&) = delete;
 
 			/**
 			 * Run socket program
