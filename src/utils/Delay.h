@@ -19,8 +19,7 @@
 #ifndef SRC_UTILS_DELAY_H_
 #define SRC_UTILS_DELAY_H_
 
-#include <signal.h>
-#include <time.h>
+#include <chrono>
 #include "Exception.h"
 
 namespace onh {
@@ -36,11 +35,10 @@ namespace onh {
              *
              * @param msec Number of milliseconds
              */
-            Delay(unsigned long int msec);
+            Delay(unsigned int msec);
 
             /**
              * Copy constructor - inactive
-             * @param
              */
             Delay(const Delay&) = delete;
 
@@ -61,7 +59,7 @@ namespace onh {
              *
              * @param msec Number of milliseconds
              */
-            void setDelay(unsigned long int msec);
+            void setDelay(unsigned int msec);
 
             /**
              * Check if delay passed
@@ -76,7 +74,7 @@ namespace onh {
             void stopDelay();
 
             /**
-             * Wait until delay is passed
+             * Wait configured milliseconds
              */
             void wait();
 
@@ -88,22 +86,13 @@ namespace onh {
         private:
 
             /// Configured delay time (milliseconds)
-            unsigned long int itsMsec;
-
-            /// Flag informs that timer is created
-            bool timerCreated;
+            unsigned int itsMsec;
 
             /// Flag informs that delay is started
             bool delayStarted;
 
-            /// Timer structure
-            timer_t timerid;
-
-            /// Signal structure
-            struct sigevent sev;
-
-            /// Timer settings structure
-            struct itimerspec its;
+            /// Wait until this point (waitAfterStart)
+            std::chrono::steady_clock::time_point waitPoint;
 	};
 
 }

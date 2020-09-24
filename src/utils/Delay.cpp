@@ -17,103 +17,55 @@
  */
 
 #include "Delay.h"
+#include <thread>
 
 using namespace onh;
 
-Delay::Delay(unsigned long int msec):
-		itsMsec(msec), timerCreated(false), delayStarted(false), timerid(NULL)
+Delay::Delay(unsigned int msec):
+	itsMsec(msec), delayStarted(false), waitPoint(std::chrono::steady_clock::now())
 {
-	// Prepare signal structure
-	sev.sigev_notify = SIGEV_NONE;
-	sev.sigev_signo = SIGRTMIN;
-	sev.sigev_value.sival_ptr = timerid;
-
-	// Create timer
-	if (timer_create(CLOCK_REALTIME, &sev, &timerid) == 0) {
-		timerCreated = true;
-	}
-
 }
 
 Delay::~Delay()
 {
-	if (timerCreated) {
-		timer_delete(timerid);
-	}
 }
 
 void Delay::startDelay() {
-
-	// Check if timer is created
-	if (!timerCreated) {
-		throw Exception("Timer is not created", "Delay::startDelay");
-	}
 
 	// Check if delay is already running
 	if (delayStarted) {
 		throw Exception("Timer already running", "Delay::startDelay");
 	}
 
-	// Seconds
-	long int seconds = itsMsec / 1000;
-	// milliseconds
-	long int ms = itsMsec % 1000;
-	// nanoseconds
-	long nst = ms * 1000000;
+	// Get start time
+	std::chrono::time_point<std::chrono::steady_clock> start = std::chrono::steady_clock::now();
 
-	// Start the timer
-	its.it_value.tv_sec = seconds;
-	its.it_value.tv_nsec = nst;
-	// one shot timer
-	its.it_interval.tv_sec = 0;
-	its.it_interval.tv_nsec = 0;
-
-	// Set timer time
-	if (timer_settime(timerid, 0, &its, NULL) == -1) {
-		throw Exception("Error while set timer time", "Delay::startDelay");
-	}
+	// Calculate finish time point
+	waitPoint = start + std::chrono::milliseconds(itsMsec);
 
 	// Set delay started flag
 	delayStarted = true;
 }
 
-void Delay::setDelay(unsigned long int msec) {
+void Delay::setDelay(unsigned int msec) {
 
 	itsMsec = msec;
 }
 
 bool Delay::delayPassed() {
 
-	struct itimerspec cts;
-
 	bool ret = false;
-
-	// Check if timer is created
-	if (!timerCreated) {
-		throw Exception("Timer is not created", "Delay::delayPassed");
-	}
 
 	// Check if delay is running
 	if (delayStarted) {
 
-		// Get timer time
-		if (timer_gettime(timerid, &cts) == 0) {
+		std::chrono::time_point<std::chrono::steady_clock> tp = std::chrono::steady_clock::now();
+		std::chrono::duration<double, std::milli> tmp = tp - waitPoint;
 
-			// Check values
-			if ((cts.it_value.tv_sec == 0) && (cts.it_value.tv_nsec == 0)) {
+		ret = (tmp.count() < 0)?(false):(true);
 
-				ret = true;
-				delayStarted = false;
-
-			} else {
-
-				ret = false;
-
-			}
-
-		} else { // error
-			throw Exception("Error while get timer time", "Delay::delayPassed");
-		}
+		if (ret)
+			delayStarted = false;
 
 	} else {
 		ret = true;
@@ -123,23 +75,6 @@ bool Delay::delayPassed() {
 }
 
 void Delay::stopDelay() {
-
-	// Check if timer is created
-	if (!timerCreated) {
-		throw Exception("Timer is not created", "Delay::stopDelay");
-	}
-
-	// Start the timer
-	its.it_value.tv_sec = 0;
-	its.it_value.tv_nsec = 0;
-	// one shot timer
-	its.it_interval.tv_sec = 0;
-	its.it_interval.tv_nsec = 0;
-
-	// Set timer time
-	if (timer_settime(timerid, 0, &its, NULL) == -1) {
-		throw Exception("Error while set timer time", "Delay::stopDelay");
-	}
 
 	delayStarted = false;
 }
@@ -151,57 +86,19 @@ void Delay::wait() {
 		throw Exception("Timer already running", "Delay::wait");
 	}
 
-    // Convert to nanoseconds
-    long int ns = itsMsec*1000000;
-    // Seconds
-    long int seconds = ns / 1000000000L;
-    // nanoseconds
-    long nst = ns % 1000000000L;
-
-    // Configure time structure
-    struct timespec time1 = {0};
-    time1.tv_sec = seconds;
-    time1.tv_nsec = nst;
-
-    // Sleep
-    nanosleep(&time1, (struct timespec *)NULL);
+	// Sleep for milliseconds
+	std::this_thread::sleep_for(std::chrono::milliseconds(itsMsec));
 }
 
 void Delay::waitAfterStart() {
 
-	struct itimerspec cts;
-
-	// Check if timer is created
-	if (!timerCreated) {
-		throw Exception("Timer is not created", "Delay::waitAfterStart");
-	}
-
 	// Check if delay is running
 	if (delayStarted) {
 
-		// Get timer time
-		if (timer_gettime(timerid, &cts) == 0) {
+		// Sleep till reach time point
+		std::this_thread::sleep_until(waitPoint);
 
-			// Check values
-			if ((cts.it_value.tv_sec == 0) && (cts.it_value.tv_nsec == 0)) {
-
-				stopDelay();
-
-			} else {
-
-				// Configure time structure
-				struct timespec time1 = {0};
-				time1.tv_sec = cts.it_value.tv_sec;
-				time1.tv_nsec = cts.it_value.tv_nsec;
-
-				// Sleep rest of the time
-				nanosleep(&time1, (struct timespec *)NULL);
-				stopDelay();
-			}
-
-		} else { // error
-			throw Exception("Error while get timer time", "Delay::waitAfterStart");
-		}
+		delayStarted = false;
 
 	} else {
 		throw Exception("Timer is not started", "Delay::waitAfterStart");
