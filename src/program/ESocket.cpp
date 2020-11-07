@@ -149,7 +149,7 @@ bool ESocket::isLocked() const {
 
 void ESocket::setOff(bool off) {
 
-	if (out && off && !oldOff) {
+	if (out && off && !oldOff && !triggerLock) {
 		goOFF = true;
 	}
 
