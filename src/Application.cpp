@@ -18,10 +18,18 @@
 
 #include "Application.h"
 #include "utils/Delay.h"
+#include "SocketProgram.h"
 #include <iostream>
 
 Application::Application(const std::string &smem, bool *exSignal):
-	shmServer(smem), exitProg(false), exitSignal(exSignal), T1(0), T2(0), T3(0), T4(0)
+	shmServer(smem),
+	exitProg(false),
+	exitSignal(exSignal),
+	T1(nullptr),
+	T2(nullptr),
+	T3(nullptr),
+	T4(nullptr),
+	extOff(shmServer.getTag<bool>({onh::PDA_MEMORY, 10, 4}))
 {
 	// Prepare tags for Socket 1
 	T1 = new SocketTags{
@@ -146,40 +154,18 @@ void Application::initGPIO() {
 void Application::eSocketProgram() {
 
 	// Socket 1
-	S1.setNotAck(T1->alarmNotAck);
-	S1.setTriggerLock(T1->triggerLock);
-	S1.setTrigger(T1->trigger);
-	S1.run();
-	T1->out = S1.getOut();
-	T1->alarm = S1.getAlarm();
-	T1->locked = S1.isLocked();
+	SocketProgram::run(*T1, S1, extOff);
 
 	// Socket 2
-	S2.setNotAck(T2->alarmNotAck);
-	S2.setTriggerLock(T2->triggerLock);
-	S2.setTrigger(T2->trigger);
-	S2.run();
-	T2->out = S2.getOut();
-	T2->alarm = S2.getAlarm();
-	T2->locked = S2.isLocked();
+	SocketProgram::run(*T2, S2, extOff);
 
 	// Socket 3
-	S3.setNotAck(T3->alarmNotAck);
-	S3.setTriggerLock(T3->triggerLock);
-	S3.setTrigger(T3->trigger);
-	S3.run();
-	T3->out = S3.getOut();
-	T3->alarm = S3.getAlarm();
-	T3->locked = S3.isLocked();
+	SocketProgram::run(*T3, S3, extOff);
 
 	// Socket 4
-	S4.setNotAck(T4->alarmNotAck);
-	S4.setTriggerLock(T4->triggerLock);
-	S4.setTrigger(T4->trigger);
-	S4.run();
-	T4->out = S4.getOut();
-	T4->alarm = S4.getAlarm();
-	T4->locked = S4.isLocked();
+	SocketProgram::run(*T4, S4, extOff);
+
+	extOff = false;
 }
 
 void Application::setOutputs() {

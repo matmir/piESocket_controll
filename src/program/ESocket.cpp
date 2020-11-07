@@ -19,21 +19,71 @@
 #include "ESocket.h"
 
 ESocket::ESocket(unsigned long int switchDelay):
-	trigger(false), oldTrigger(false), triggerLock(false), locked(false), out(false), alarm(false), isAlarmNotAck(false), switchProt(switchDelay)
+	trigger(false),
+	oldIn(false),
+	triggerLock(false),
+	locked(false),
+	out(false),
+	alarm(false),
+	isAlarmNotAck(false),
+	goOFF(false),
+	oldOff(false),
+	switchProt(switchDelay)
 {
 }
 
 ESocket::~ESocket() {
 }
 
+void ESocket::setOutput(bool oVal) {
+
+	// Check delay protection
+	if (switchProt.delayPassed()) {
+
+		// Change output value
+		out = oVal;
+
+		// Start protection delay
+		switchProt.startDelay();
+
+	} else {
+
+		// Set alarm
+		alarm = true;
+		locked = true;
+
+		// Restart delay
+		switchProt.stopDelay();
+		switchProt.startDelay();
+	}
+}
+
+void ESocket::updateLockFlag() {
+
+	bool fl = false;
+
+	// Alarm is active
+	if (alarm || isAlarmNotAck) {
+		fl = true;
+	}
+
+	// Lock is triggered
+	if (triggerLock) {
+		fl = true;
+	}
+
+	// Go OFF activated but delay is working
+	if (goOFF && !switchProt.delayPassed()) {
+		fl = true;
+	}
+
+	locked = fl;
+}
+
 void ESocket::run() {
 
 	// Update lock flag
-	if (alarm || isAlarmNotAck || triggerLock) {
-		locked = true;
-	} else {
-		locked = false;
-	}
+	updateLockFlag();
 
 	// Reset alarm
 	if (alarm && isAlarmNotAck) {
@@ -42,37 +92,34 @@ void ESocket::run() {
 		}
 	}
 
-	// Change state?
-	if ((trigger != oldTrigger) && !locked) {
+	// Update trigger
+	if (locked) {
+		trigger = false;
+	}
 
-		// Check delay protection
-		if (switchProt.delayPassed()) {
+	// Change state
+	if (trigger && !goOFF) {
 
-			// Change output value
-			out = trigger;
+		trigger = false;
 
-			// Remember trigger value
-			oldTrigger = trigger;
+		// Invert state
+		setOutput(!out);
+	}
 
-			// Start protection delay
-			switchProt.startDelay();
-
-		} else {
-
-			// Set alarm
-			alarm = true;
-			locked = true;
-
-			// Restart delay
-			switchProt.stopDelay();
-			switchProt.startDelay();
-		}
+	// Go OFF
+	if (goOFF && !locked) {
+		setOutput(false);
+		goOFF = false;
 	}
 }
 
-void ESocket::setTrigger(bool trig) {
+void ESocket::setIn(bool inp) {
 
-	trigger = trig;
+	if (inp && !oldIn) {
+		trigger = true;
+	}
+
+	oldIn = inp;
 }
 
 void ESocket::setTriggerLock(bool lck) {
@@ -85,17 +132,26 @@ void ESocket::setNotAck(bool notAck) {
 	isAlarmNotAck = notAck;
 }
 
-bool ESocket::getOut() {
+bool ESocket::getOut() const {
 
 	return out;
 }
 
-bool ESocket::getAlarm() {
+bool ESocket::getAlarm() const {
 
 	return alarm;
 }
 
-bool ESocket::isLocked() {
+bool ESocket::isLocked() const {
 
 	return locked;
+}
+
+void ESocket::setOff(bool off) {
+
+	if (out && off && !oldOff) {
+		goOFF = true;
+	}
+
+	oldOff = off;
 }

@@ -41,7 +41,7 @@ TEST(ESocketTests, TestSwitch1) {
 
 	ESocket s;
 
-	s.setTrigger(true);
+	s.setIn(true);
 	s.run();
 
 	ASSERT_TRUE(s.getOut());
@@ -54,7 +54,7 @@ TEST(ESocketTests, TestSwitch2) {
 	onh::Delay d(1500);
 	ESocket s(1000);
 
-	s.setTrigger(true);
+	s.setIn(true);
 	s.run();
 
 	ASSERT_TRUE(s.getOut());
@@ -62,7 +62,9 @@ TEST(ESocketTests, TestSwitch2) {
 
 	d.wait();
 
-	s.setTrigger(false);
+	s.setIn(false);
+	s.run();
+	s.setIn(true);
 	s.run();
 
 	ASSERT_FALSE(s.getOut());
@@ -76,20 +78,23 @@ TEST(ESocketTests, TestSwitch3) {
 	ESocket s(1000);
 
 	// Switch on
-	s.setTrigger(true);
+	s.setIn(true);
 	s.run();
 	ASSERT_TRUE(s.getOut());
 	ASSERT_FALSE(s.getAlarm());
 	ASSERT_FALSE(s.isLocked());
 
 	// Switch triggers alarm - output not changed
-	s.setTrigger(false);
+	s.setIn(false);
+	s.run();
+	s.setIn(true);
 	s.run();
 	ASSERT_TRUE(s.getOut());
 	ASSERT_TRUE(s.getAlarm());
 	ASSERT_TRUE(s.isLocked());
 
 	// Ack alarm
+	s.setIn(false);
 	s.setNotAck(true);
 	s.run();
 	ASSERT_TRUE(s.getOut());
@@ -106,7 +111,7 @@ TEST(ESocketTests, TestSwitch3) {
 	// Take off ack
 	s.setNotAck(false);
 	s.run();
-	ASSERT_FALSE(s.getOut());
+	ASSERT_TRUE(s.getOut());
 	ASSERT_FALSE(s.getAlarm());
 	ASSERT_FALSE(s.isLocked());
 }
@@ -115,7 +120,7 @@ TEST(ESocketTests, TestLock1) {
 
 	ESocket s;
 
-	s.setTrigger(true);
+	s.setIn(true);
 	s.setTriggerLock(true);
 	s.run();
 
@@ -130,7 +135,7 @@ TEST(ESocketTests, TestLock2) {
 	ESocket s(1000);
 
 	// Switch on
-	s.setTrigger(true);
+	s.setIn(true);
 	s.run();
 	ASSERT_TRUE(s.getOut());
 	ASSERT_FALSE(s.getAlarm());
@@ -138,7 +143,7 @@ TEST(ESocketTests, TestLock2) {
 
 	// Lock
 	s.setTriggerLock(true);
-	s.setTrigger(false);
+	s.setIn(false);
 	s.run();
 	ASSERT_TRUE(s.getOut());
 	ASSERT_FALSE(s.getAlarm());
@@ -146,6 +151,34 @@ TEST(ESocketTests, TestLock2) {
 
 	d.wait();
 	s.setTriggerLock(false);
+	s.run();
+	ASSERT_TRUE(s.getOut());
+	ASSERT_FALSE(s.getAlarm());
+	ASSERT_FALSE(s.isLocked());
+}
+
+TEST(ESocketTests, TestGlobalOff1) {
+
+	onh::Delay d(1500);
+	ESocket s(1000);
+
+	// Switch on
+	s.setIn(true);
+	s.run();
+	ASSERT_TRUE(s.getOut());
+	ASSERT_FALSE(s.getAlarm());
+	ASSERT_FALSE(s.isLocked());
+
+	// Global Off
+	s.setOff(true);
+	s.setIn(false);
+	s.run();
+	ASSERT_TRUE(s.getOut());
+	ASSERT_FALSE(s.getAlarm());
+	ASSERT_TRUE(s.isLocked());
+
+	s.setOff(false);
+	d.wait();
 	s.run();
 	ASSERT_FALSE(s.getOut());
 	ASSERT_FALSE(s.getAlarm());

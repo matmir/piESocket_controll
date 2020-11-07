@@ -22,24 +22,7 @@
 #include <onhSHMcpp/ShmServer.h>
 #include <gpiod.h>
 #include "program/ESocket.h"
-
-/**
- * Socket tag structure
- */
-typedef struct {
-	/// Trigger tag
-	onh::PDTag<bool> trigger;
-	/// Trigger lock tag
-	onh::PDTag<bool> triggerLock;
-	/// Not ack flag (informs that alarm is not ack)
-	onh::PDTag<bool> alarmNotAck;
-	/// Socket relay tag
-	onh::PDTag<bool> out;
-	/// Alarm Tag
-	onh::PDTag<bool> alarm;
-	/// Locked state Tag
-	onh::PDTag<bool> locked;
-} SocketTags;
+#include "SocketTags.h"
 
 class Application {
 
@@ -92,6 +75,9 @@ class Application {
 
 		/// Electric socket tags
 		SocketTags *T1, *T2, *T3, *T4;
+
+		/// Global socket off tag
+		onh::PDTag<bool> extOff;
 
 		/**
 		 * Initialize GPIO device

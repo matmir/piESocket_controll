@@ -16,10 +16,10 @@
  * along with piESocket.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../utils/Delay.h"
-
 #ifndef SRC_PROGRAM_ESOCKET_H_
 #define SRC_PROGRAM_ESOCKET_H_
+
+#include "../utils/Delay.h"
 
 	/**
 	 * Electric socket control class
@@ -53,11 +53,11 @@
 			void run();
 
 			/**
-			 * Set socket trigger flag
+			 * Set socket input flag
 			 *
-			 * @param trig Trigger value
+			 * @param inp Input value
 			 */
-			void setTrigger(bool trig);
+			void setIn(bool inp);
 
 			/**
 			 * Set socket trigger lock flag
@@ -68,6 +68,7 @@
 
 			/**
 			 * Set alarm acknowledgment flag (true - alarm is not ack)
+			 *
 			 * @param ack
 			 */
 			void setNotAck(bool notAck);
@@ -77,29 +78,34 @@
 			 *
 			 * @return Output flag
 			 */
-			bool getOut();
+			bool getOut() const;
 
 			/**
 			 * Get alarm flag (too fast state change)
 			 *
 			 * @return Alarm flag
 			 */
-			bool getAlarm();
+			bool getAlarm() const;
 
 			/**
 			 * Get socket lock state
 			 *
 			 * @return Socket Lock state
 			 */
-			bool isLocked();
+			bool isLocked() const;
+
+			/**
+			 * Turn socket OFF
+			 */
+			void setOff(bool off);
 
 		private:
 
-			/// Trigger flag
+			/// Change socket state
 			bool trigger;
 
-			/// Previous trigger flag
-			bool oldTrigger;
+			/// Input old value
+			bool oldIn;
 
 			/// Trigger lock flag
 			bool triggerLock;
@@ -116,8 +122,26 @@
 			/// Alarm not acknowledgment flag
 			bool isAlarmNotAck;
 
+			/// Run socket to OFF state
+			bool goOFF;
+
+			/// Old off input value
+			bool oldOff;
+
 			/// Switch protection
 			onh::Delay switchProt;
+
+			/**
+			 * Set output socket state
+			 *
+			 * @param oVal Output value
+			 */
+			void setOutput(bool oVal);
+
+			/**
+			 * Update internal lock flag
+			 */
+			void updateLockFlag();
 	};
 
 #endif /* SRC_PROGRAM_ESOCKET_H_ */
