@@ -6,9 +6,16 @@ Program for controlling electric sockets connected to Raspberry Pi and communica
 INSTALATION
 ===========
 
-1) git clone https://github.com/matmir/piESocket_controll.git
+	git clone https://github.com/matmir/piESocket_controll.git
+	cd piESocket_controll
+	mkdir build          # Directory with build output
+	cd build
+	cmake ..             # Generate build script
+	make                 # Build application
 
-2) Go to piESocket_controll directory and run: make release
+To build application with tests add option:
+
+	cmake -DWithTest=true ..
 
 Project site: https://opennetworkhmi.net/index.php?s=piESocket
 
